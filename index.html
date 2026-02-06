@@ -55,26 +55,13 @@
 
 <script>
 let lovePoints=0,currentQuestion=0,kissUsed=false,musicPlaying=false,slideInterval;
-
-// --- MUSIC FUNCTIONS ---
 const audio = document.getElementById("bgMusic");
-function toggleMusic(){
-  if(!musicPlaying){
-    audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{ alert("Tap anywhere to start music on mobile!"); });
-  } else {
-    audio.pause(); musicPlaying=false;
-  }
-}
 
-// Mobile requires a user gesture to start audio. We'll listen for **first tap** anywhere
-function initMusicOnGesture(){
-  const startMusic = () => { 
-    if(audio.paused){ audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{}); } 
-    document.body.removeEventListener('click', startMusic);
-  };
-  document.body.addEventListener('click', startMusic, { once:true });
+// --- MUSIC BUTTON ---
+function toggleMusic(){
+  if(!musicPlaying){ audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{}); } 
+  else { audio.pause(); musicPlaying=false; }
 }
-initMusicOnGesture();
 
 // --- CONFETTI ---
 function createConfetti(){for(let i=0;i<35;i++){ const conf=document.createElement("div"); conf.classList.add("confetti"); conf.style.left=Math.random()*100+"vw"; conf.style.background="hsl("+Math.random()*360+",100%,70%)"; conf.style.animationDuration=(Math.random()*1+1.5)+"s"; conf.style.opacity=Math.random(); document.body.appendChild(conf); setTimeout(()=>conf.remove(),2000);}}
@@ -83,9 +70,10 @@ function createConfetti(){for(let i=0;i<35;i++){ const conf=document.createEleme
 function showPopup(message, extraBtn=""){ document.getElementById("popup").style.display="flex"; document.getElementById("popupContent").innerHTML=`<p style="font-size:1.15rem; line-height:1.6;">${message}</p>${extraBtn}<button onclick="closePopup()">Okay Babyyy 😚</button>`;}
 function closePopup(){ document.getElementById("popup").style.display="none"; }
 
-// --- PAGE FUNCTIONS ---
+// --- RENDER ---
 function render(html){ document.getElementById("screen").innerHTML=html; }
 
+// --- INTRO ---
 function introScreen(){
   const text=["Initializing Love Protocol...","Connecting to Boyfriend's Heart Server ❤️...","Loading Memories...","Authentication Required 🔐","","Enter Password to Continue 😌"];
   render(`<h1>Hey Love ❤️</h1><div class="typing" id="typingBox"></div>`);
@@ -96,13 +84,20 @@ function introScreen(){
   },500);
 }
 
+// --- CHECK PASSWORD ---
 function checkPassword(){
   const pass=document.getElementById("pass").value.trim().toLowerCase();
-  if(pass==="baby"||pass==="babyy"||pass==="20september"){ createConfetti(); showPopup("Access Granted ✅ Welcome my love 😭❤️"); setTimeout(()=>{closePopup(); quizScreen();},1200);}
-  else{showPopup("Wrong password 😤 only my baby can enter 😚");}
+  if(pass==="baby"||pass==="babyy"||pass==="20september"){ 
+    createConfetti(); 
+    // ✅ Start music on valid password click (works on mobile)
+    audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{ console.log("Music failed to play"); });
+    showPopup("Access Granted ✅ Welcome my love 😭❤️"); 
+    setTimeout(()=>{closePopup(); quizScreen();},1200);
+  }
+  else{ showPopup("Wrong password 😤 only my baby can enter 😚"); }
 }
 
-// --- QUIZ FUNCTIONS ---
+// --- QUIZ ---
 const quizData=[
   {question:"Do you remember our anniversary date? 😏",options:["12","20","25","8"],correct:"20"},
   {question:"Now tell me the month 😌❤️",options:["August","September","October","July"],correct:"September"},
@@ -116,7 +111,6 @@ function quizScreen(){
   const optionsDiv=document.getElementById("options"); optionsDiv.innerHTML="";
   q.options.forEach(option=>{const safeOption=option.replace(/'/g,"\\'"); optionsDiv.innerHTML+=`<button class="small-btn" onclick="checkAnswer('${safeOption}')">${option}</button>`;});
 }
-
 function updateProgress(){ const percent=(lovePoints/quizData.length)*100; document.getElementById("progressFill").style.width=percent+"%"; }
 function checkAnswer(selected){
   const msg=document.getElementById("message"); const correct=quizData[currentQuestion].correct;
@@ -127,61 +121,6 @@ function checkAnswer(selected){
 }
 function kissBtn(){ if(!kissUsed){kissUsed=true; createConfetti(); showPopup("💋 One kiss delivered successfully 😭❤️");} else{showPopup("Already kissed once 😤 save some for real life 😚❤️");}}
 function hugBtn(){ createConfetti(); showPopup("🫂 Hug delivered successfully babyyy 😭❤️"); }
-
-// --- LOVE CALCULATOR ---
-function loveCalculatorScreen(){
-  render(`<h1>Love Calculator 💞</h1><p>Enter our names and check destiny 😌❤️</p><input id="name1" placeholder="Your Name 💖"><input id="name2" placeholder="My Name 🎀"><button onclick="calculateLove()">Calculate 💘</button><div class="message" id="calcMsg"></div>`);
-}
-function calculateLove(){
-  const n1=document.getElementById("name1").value.trim(); const n2=document.getElementById("name2").value.trim(); const msg=document.getElementById("calcMsg");
-  if(n1===""||n2===""){msg.style.display="block"; msg.innerText="Enter both names 😤"; return;}
-  createConfetti(); msg.style.display="block"; msg.innerText=`💖 Compatibility: 1000%\nBecause destiny already coded us together 😭❤️`;
-  setTimeout(()=>{complimentScreen();},2500);
-}
-
-// --- COMPLIMENT REVEAL ---
-function complimentScreen(){
-  render(`<h1>Tap to Reveal 🎁</h1><p>Each tap unlocks my feelings 😭❤️</p><div id="revealArea"></div><button onclick="wheelScreen()">Next 😚</button>`);
-  const compliments=["You are my comfort zone 🥺❤️","You are my favorite notification 😭🎀","You make my heart feel safe 💍","I’ll choose you in every lifetime 😚","You are my peace and my chaos 😭❤️","You are my forever favorite person 🎀💖"];
-  const area=document.getElementById("revealArea");
-  compliments.forEach((text,index)=>{area.innerHTML+=`<div class="reveal-box" onclick="reveal(${index}, '${text.replace(/'/g,"\\'")}')" id="box${index}">🎁 Tap to Reveal</div>`;});
-}
-function reveal(id,text){ const box=document.getElementById("box"+id); box.innerText=text; createConfetti(); }
-
-// --- WHEEL ---
-function wheelScreen(){ render(`<h1>Spin The Wheel 🎡</h1><p>Spin and see what love reward you get 😚❤️</p><button onclick="spinWheel()">SPIN 🎡</button><div class="message" id="wheelMsg"></div><button onclick="chatScreen()">Next 💬</button>`); }
-function spinWheel(){ const rewards=["Kiss 😚💋","Hug 🫂","Compliment 💖","Date Plan 🌙","Miss You 🥺","Forever 💍"]; const random=rewards[Math.floor(Math.random()*rewards.length)]; const msg=document.getElementById("wheelMsg"); createConfetti(); msg.style.display="block"; msg.innerText=`🎡 Result: ${random}\nReward unlocked successfully 😭❤️`; }
-
-// --- CHAT ---
-function chatScreen(){ render(`<h1>Chat Simulator 💬</h1><p>Choose your replies babyyy 😚</p><div class="chat-box" id="chatBox"><div class="bubble you">I love you ❤️</div></div><button class="small-btn" onclick="chatReply('I love you more 😭❤️')">I love you more 😭❤️</button><button class="small-btn" onclick="chatReply('Forever yours 💍')">Forever yours 💍</button><button class="small-btn" onclick="chatReply('My baby 🎀')">My baby 🎀</button><button onclick="proposalScreen()">Next 💍</button>`); }
-function chatReply(reply){ const box=document.getElementById("chatBox"); box.innerHTML+=`<div class="bubble me">${reply}</div>`; box.innerHTML+=`<div class="bubble you">Olleee mera bacchaa 😭🎀❤️</div>`; box.scrollTop=box.scrollHeight; createConfetti(); }
-
-// --- PROPOSAL ---
-function proposalScreen(){ render(`<h1>Final Question 💍</h1><p>Will you be my Valentine forever? 😚❤️</p><button onclick="loadingLove()">YES 💖</button><button onclick="noBtn()">NO 😤</button>`);}
-function noBtn(){ createConfetti(); showPopup("Wrong answer 😤 Try again babyyy 😚❤️"); }
-
-// --- FINAL PAGES ---
-function loadingLove(){ render(`<h1>Loading Love...</h1><p>Please wait while I upload my feelings 😭❤️</p><div class="heart-loader">💗</div>`); setTimeout(slideshowScreen,2500); }
-function slideshowScreen(){
-  render(`<h1>Our Memories 📸❤️</h1><p>These moments are my forever 😭🎀</p><div class="slideshow">
-    <img src="photo1.jpeg" class="active">
-    <img src="photo2.jpeg">
-    <img src="photo3.jpeg">
-  </div><p id="caption" style="font-weight:bold;">Our First Photo Together 💖</p><button onclick="endPopup()">Next 😚</button>`);
-  const captions=["Our First Photo Together 💖","Our First Day Out Together 😭🎀","Our First Trip Together 🥺❤️"];
-  const slides=document.querySelectorAll(".slideshow img"); let index=0;
-  clearInterval(slideInterval);
-  slideInterval=setInterval(()=>{
-    slides.forEach(s=>s.classList.remove("active"));
-    index=(index+1)%slides.length;
-    slides[index].classList.add("active");
-    document.getElementById("caption").innerText=captions[index];
-  },2500);
-}
-function endPopup(){ createConfetti(); showPopup("I wanted to add more photos like 5 October wala aur January wala… but koi baat nhii 😚❤️",`<button onclick="closePopup(); finalLovePage();" style="margin-bottom:10px;">Next 😚❤️</button>`); }
-function finalLovePage(){
-  render(`<h1>My Forever Person 💍❤️</h1><p style="font-size:1.12rem; line-height:1.8; margin-top:15px;">We will make thousands more memories together, and I’ll keep saving every moment of us in my heart forever 😭🎀<br><br>You are my comfort, my happiness, my safe place, and my favorite person in this whole world 💍❤️<br><br>I love you endlessly babyyy 😚🎀❤️🧿<br><br>Forever and ever and ever.</p><button onclick="createConfetti(); showPopup('Mission Successful ✅ Love Locked Forever 💍❤️😚')">Finish 😭❤️</button>`);
-}
 
 // --- START ---
 introScreen();
