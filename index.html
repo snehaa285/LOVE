@@ -55,22 +55,26 @@
 
 <script>
 let lovePoints=0,currentQuestion=0,kissUsed=false,musicPlaying=false,slideInterval;
-const quizData=[
-  {question:"Do you remember our anniversary date? 😏",options:["12","20","25","8"],correct:"20"},
-  {question:"Now tell me the month 😌❤️",options:["August","September","October","July"],correct:"September"},
-  {question:"What I call u the most ? 🎀",options:["Buiibee","Baby","Sir","Buddy"],correct:"Buiibee"}
-];
 
 // --- MUSIC FUNCTIONS ---
 const audio = document.getElementById("bgMusic");
-function toggleMusic(){ 
-  if(!musicPlaying){ audio.play().then(()=>{musicPlaying=true;}).catch(()=>{}); } 
-  else { audio.pause(); musicPlaying=false; } 
+function toggleMusic(){
+  if(!musicPlaying){
+    audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{ alert("Tap anywhere to start music on mobile!"); });
+  } else {
+    audio.pause(); musicPlaying=false;
+  }
 }
-// Try autoplay on desktop
-window.addEventListener('load', () => { audio.play().then(()=>{musicPlaying=true;}).catch(()=>{}); });
-// On mobile: play on first tap anywhere
-document.body.addEventListener('click', () => { if(audio.paused){ audio.play().catch(()=>{}); musicPlaying=true; } }, { once: true });
+
+// Mobile requires a user gesture to start audio. We'll listen for **first tap** anywhere
+function initMusicOnGesture(){
+  const startMusic = () => { 
+    if(audio.paused){ audio.play().then(()=>{ musicPlaying=true; }).catch(()=>{}); } 
+    document.body.removeEventListener('click', startMusic);
+  };
+  document.body.addEventListener('click', startMusic, { once:true });
+}
+initMusicOnGesture();
 
 // --- CONFETTI ---
 function createConfetti(){for(let i=0;i<35;i++){ const conf=document.createElement("div"); conf.classList.add("confetti"); conf.style.left=Math.random()*100+"vw"; conf.style.background="hsl("+Math.random()*360+",100%,70%)"; conf.style.animationDuration=(Math.random()*1+1.5)+"s"; conf.style.opacity=Math.random(); document.body.appendChild(conf); setTimeout(()=>conf.remove(),2000);}}
@@ -99,6 +103,12 @@ function checkPassword(){
 }
 
 // --- QUIZ FUNCTIONS ---
+const quizData=[
+  {question:"Do you remember our anniversary date? 😏",options:["12","20","25","8"],correct:"20"},
+  {question:"Now tell me the month 😌❤️",options:["August","September","October","July"],correct:"September"},
+  {question:"What I call u the most ? 🎀",options:["Buiibee","Baby","Sir","Buddy"],correct:"Buiibee"}
+];
+
 function quizScreen(){
   const q=quizData[currentQuestion];
   render(`<h1>Love Quiz 💞</h1><p>${q.question}</p><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div id="options"></div><div class="message" id="message"></div><div><button class="small-btn" onclick="kissBtn()">Kiss 😚</button><button class="small-btn" onclick="hugBtn()">Hug 🫂</button></div>`);
@@ -106,6 +116,7 @@ function quizScreen(){
   const optionsDiv=document.getElementById("options"); optionsDiv.innerHTML="";
   q.options.forEach(option=>{const safeOption=option.replace(/'/g,"\\'"); optionsDiv.innerHTML+=`<button class="small-btn" onclick="checkAnswer('${safeOption}')">${option}</button>`;});
 }
+
 function updateProgress(){ const percent=(lovePoints/quizData.length)*100; document.getElementById("progressFill").style.width=percent+"%"; }
 function checkAnswer(selected){
   const msg=document.getElementById("message"); const correct=quizData[currentQuestion].correct;
@@ -177,6 +188,4 @@ introScreen();
 </script>
 </body>
 </html>
-
-
 
